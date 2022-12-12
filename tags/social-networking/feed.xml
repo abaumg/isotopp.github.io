@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>social networking on Die wunderbare Welt von Isotopp</title>
+    <link>https://blog.koehntopp.info/tags/social-networking.html</link>
+    <description>Recent content in social networking on Die wunderbare Welt von Isotopp</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 12 Dec 2022 20:33:32 +0000</lastBuildDate><atom:link href="https://blog.koehntopp.info/tags/social-networking/feed.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Social Networks and USENET</title>
+      <link>https://blog.koehntopp.info/2019/01/24/social-networks-and-usenet.html</link>
+      <pubDate>Thu, 24 Jan 2019 14:58:29 +0000</pubDate>
+      
+      <guid>https://blog.koehntopp.info/2019/01/24/social-networks-and-usenet.html</guid>
+      <description>&lt;p&gt;Some thoughts on Social Networking and Usenet, in response to &lt;a href=&#34;https://jfm.carcosa.net/blog/computing/usenet/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;https://jfm.carcosa.net/blog/computing/usenet/&lt;/a&gt;
+
+.&lt;/p&gt;
+&lt;p&gt;In the context of the impending shutdown of Google plus, some people reminisce about USENET, especially in the context of social media.&lt;/p&gt;
+&lt;p&gt;Before being abused as a broadcast protocol for TV series, Porn and illegal copies of software, USENET was a kind of decentralized social media used for discussion.
+There was a small number of interoperable server implementations, and a plethora of clients, with different audiences and optimisations.&lt;/p&gt;
+&lt;h1 id=&#34;how-did-usenet-work&#34;&gt;
+    &lt;a href=&#34;#how-did-usenet-work&#34;&gt;
+	How did USENET work?
+    &lt;/a&gt;
+&lt;/h1&gt;
+&lt;p&gt;The idea behind USENET is that you have a very large number of servers that forward articles between each other, so that any user can post any article anywhere to any server, and eventually it would end up with exactly one copy of that article on each server that wants it.
+Servers can have one or more connections with other servers, some had hundreds of links to other servers.
+Message would ideally still be transported only once, and in no case stored multiple times.&lt;/p&gt;
+&lt;p&gt;A server keeps a message for a configurable amount of time, and eventually deletes the local copy as the expiration date of this message is being exceeded.&lt;/p&gt;
+&lt;p&gt;The format of any USENET post was superficially that of a (pre-multimedia) mail.
+So a USENET article had a number of header lines as Key-Value pairs, broken according to mail long-line folding rules, and a body, which was ASCII text.
+Later additions tried to improve on that, but failed - more about that later.&lt;/p&gt;
+&lt;p&gt;A somewhat basic usenet header would look somewhat like this:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;From: user@host (User Name)
+Date: Thu, 24 Jan 2019 22:15:15 +0100
+Path: news.nntp.dca.giganews.com!news.koehntopp.de!kris
+Newsgroups: kiel.allgemein
+Message-ID: &amp;lt;treXfsfeg17354@news.koehntopp.de&amp;gt;
+In-Reply-To: &amp;lt;eueytdj2625@news.koehntopp.de&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;A few header keywords were more important than others, because without them the protocol would not work.&lt;/p&gt;
+&lt;p&gt;The key header is the Message-ID:
+It defines the identity of a message for purposes of the protocol &amp;ndash; two instances of a message are considered identical if they have the same ID, different if they ID is different.
+It was crucial for all implementations to never modify a messages &amp;ldquo;Message-ID:&amp;rdquo; line.&lt;/p&gt;
+&lt;p&gt;Servers know which messages they have already seen by keeping a list of Message-IDs in a special database, the server history table.
+Servers would remember the IDs of messages longer than they would remember articles, and they would reject any message with any Message-ID that is even older than their history reaches back in time.
+So a particular server might want to keep messages for 30 days, and a history table for 90 days.
+That particular server would roundabout reject any message older than 90 days.&lt;/p&gt;
+&lt;p&gt;Whenever a server sees a message young enough to qualify for lookup in the history table, it would do that lookup.
+If the Message-ID is already known, a decision about this message had already been made in the past and the message is being rejected as a duplicate.&lt;/p&gt;
+&lt;p&gt;Only when a message qualifies younger than the history, and as as-of-now unknown in the history, a decision about it (keep it, discard it, &amp;hellip;) has to be made.
+In any case, the server would store the ID as &amp;ldquo;seen&amp;rdquo; in the history table and it would reject any second message with that ID.
+That way duplicates from multiple connections are being recognized and eliminated.&lt;/p&gt;
+&lt;p&gt;This allows a dense and redundant set of connections between servers without the need of any connection management or requirements on the server topology at all.
+It would also allow a new server to connect to an existing server and request re-feeding any amount of old messages without the danger of accidentally feeding these old messages a second time to other existing servers over another link.&lt;/p&gt;
+&lt;p&gt;Of course, it still is possible for a server with a hundred links to get dozens of copies of the same message through different links, all of which except for the first copy are being rejected.&lt;/p&gt;
+&lt;p&gt;That was particularly common for servers that did not have a live connection on the internet, but were batch fed:
+Such servers would have their articles collected in a series of compressed files over the day, would then dial up using a modem and download the compressed batches in one go, multiple times a day.
+After disconnection, they would decompress and process these articles, discarding any duplicates based on the Message-IDs and their history.&lt;/p&gt;
+&lt;p&gt;Interactive transfer on live internet lines was slightly more intelligent, and worked somewhat like two kids comparing collection cards.
+One server would post Message-IDs of messages in &lt;code&gt;IHAVE&lt;/code&gt; statements, and the receiving server would look up these IDs in turn in their history.
+Anything missing they would ask for with &lt;code&gt;SENDME&lt;/code&gt; messages, asking for new files by Message-ID.&lt;/p&gt;
+&lt;p&gt;One way to optimise this is the &amp;ldquo;Path&amp;rdquo; header line, which lists all the servers that have seen this copy of a message in order to traversal.
+So a message posted to &lt;code&gt;news.koehnntopp.de&lt;/code&gt; by the user &lt;code&gt;kris&lt;/code&gt; would start out with a &amp;ldquo;&lt;code&gt;Path: news.koehntopp.de!kris&lt;/code&gt;&amp;rdquo;.
+That server would feed it for example to &lt;code&gt;news.nntp.dca.giganews.com&lt;/code&gt; and to &lt;code&gt;news.toppoint.de&lt;/code&gt;, so one copy of that message would end up with a &amp;ldquo;&lt;code&gt;Path: news.nntp.dca.giganews.com!news.koehntopp.de!kris&lt;/code&gt;&amp;rdquo;, and the other would end up with &amp;ldquo;&lt;code&gt;Path: news.toppoint.de!news.koehntopp.de!kris&lt;/code&gt;&amp;rdquo; in their Path.
+Both copies of the original message would have divergent Path header lines, but identical Message-ID lines, and the same message body.&lt;/p&gt;
+&lt;p&gt;The Path line was being used to detect circles before they happen - you would not even offer anything that already has &lt;code&gt;news.koehntopp.de&lt;/code&gt; in the Path in any position back to &lt;code&gt;news.koehntopp.de&lt;/code&gt;.
+Also, as a server operator you could do stats on Path lines to see which of your links was fast (brought you copies of messages first) and which would be slower.&lt;/p&gt;
+&lt;h1 id=&#34;message-selection&#34;&gt;
+    &lt;a href=&#34;#message-selection&#34;&gt;
+	Message Selection
+    &lt;/a&gt;
+&lt;/h1&gt;
+&lt;p&gt;So how would a server operator get connections to other servers, and how would they decide which messages they want and not want?&lt;/p&gt;
+&lt;p&gt;This is the first of the weak points of USENET, and often glossed over in glorifying USENET.&lt;/p&gt;
+&lt;p&gt;Setting up a link between two servers was a completely manual process, and it was completely controlled by the upstream server feeding a downstream server with messages.&lt;/p&gt;
+&lt;p&gt;First, you had to manually discover a server wanting to act as a feed to you.
+Often that was done with mailing lists where server operators and wannabe-server operators offered feeds, or asked for peers.&lt;/p&gt;
+&lt;p&gt;Then, after making contact, you would exchange contact information, and negotiate the parameters of setting up a link.
+That required the exchange of login credentials, and the configuration of what the receiving server operator would want from the feed.
+The upstream operator would manually configure these selection criteria and then send stuff to the receiver, which may or may not have been what these people wanted, and they could take that or discard it.&lt;/p&gt;
+&lt;p&gt;This is totally not what anybody would want today or back then.
+There was no automated negotiation where the feeding server would advertise what they have, and the receiving server would then state interactively what they would want to subscribe to and what not.&lt;/p&gt;
+&lt;p&gt;Also, all selection was based on another header line, the Newsgroup header.
+So you could not express wishes based on language, author, content type, message-size or any other criteria.
+You could only say you want messages &amp;ldquo;in kiel.allgemein and kiel.uni&amp;rdquo; or &amp;ldquo;in any kiel.* newsgroup&amp;rdquo; or exclusion criteria such as &amp;ldquo;kiel.&lt;em&gt;, but not kiel.binaries.&lt;/em&gt;&amp;rdquo;.&lt;/p&gt;
+&lt;p&gt;Conversely, server operators and end users where guarding newsgroups strongly - the creation and deletion of newsgroups was a heavily guarded process and misposting and crossposting - posting to the wrong newsgroup or posting to too many newsgroups at once - came attached with social stigma and sanctions.&lt;/p&gt;
+&lt;p&gt;This made USENET very cumbersome for the end user.
+Users that wanted social space and reach wanted a newsgroup.
+But to get that they had to go through a very slow and formalised discussion process that was designed to keep the number of groups small and audiences in groups large and generalised.
+Protected or small spaces, with a designed, non-public audience were frowned upon, making the creation of safe spaces hard or impossible.&lt;/p&gt;
+&lt;h1 id=&#34;the-client-dilemma&#34;&gt;
+    &lt;a href=&#34;#the-client-dilemma&#34;&gt;
+	The client dilemma
+    &lt;/a&gt;
+&lt;/h1&gt;
+&lt;p&gt;USENET clients were written as early versions of free software.
+Their source was packaged and posted on USENET itself.
+You would read a newsgroup that transported packaged software, and would find a new version of an end user client posted there.
+You would unpackage the source, configure it for your system and compile it, and then try out the new program.
+If it worked, you would roll out the new version on your systems for your end users.&lt;/p&gt;
+&lt;p&gt;There were many client programs.
+Sven Guckes maintains a list at &lt;a href=&#34;http://www.guckes.net/newsreaders/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;http://www.guckes.net/newsreaders/&lt;/a&gt;
+
+.&lt;/p&gt;
+&lt;p&gt;The wide diversity in reading software also was a main cause of impediment in the evolution of USENET.
+If a news reading program added features that required additional data in the header or the body of an article, all other reading programs would have problems decoding that.
+Simple things as support for Umlauts for example required encoding of characters, because some systems broke Non-ASCII characters.
+So &amp;ldquo;Kristian Köhntopp&amp;rdquo; was encoded as &amp;ldquo;Kristian =?iso-8859?Q?K=F6hntopp?=&amp;rdquo;.
+While it was displayed properly in readers that supported decoding this, it was shown as &amp;ldquo;Kristian Iso-something-topp&amp;rdquo; to everybody else.&lt;/p&gt;
+&lt;p&gt;Putting rich content, such as formatting in Markup or HTML, or inline-images into messages was even worse, because it made messages completely unreadable to users with clients that did not support these new formats.&lt;/p&gt;
+&lt;p&gt;Consequently, all extensions got heavy resistance from end-users and operators everywhere, and eventually USENET evolution stopped and everybody moved to web forums.
+Essentially, USENET died with the appearance of phpBB and friends.&lt;/p&gt;
+&lt;h1 id=&#34;how-web-forum-software-won&#34;&gt;
+    &lt;a href=&#34;#how-web-forum-software-won&#34;&gt;
+	How web forum software won
+    &lt;/a&gt;
+&lt;/h1&gt;
+&lt;p&gt;Web Forum software was, in the eyes of USENET users, a big step backwards.
+It was not distributed, the client was primitive and put a lot of emphasis on presentation, and it was proscribed by the board operator instead of being a choice of the reader.&lt;/p&gt;
+&lt;p&gt;But web boards were easy to upgrade:
+With an upgrade, the same set of features was available to all users at once, and there was no possible resistance from users who were slow or negligent in upgrading their software.
+Also, while you had to go through a slow and lengthy discussion process and voting process to get just one newsgroup, it was easy to get a web server with a copy of phpBB up and running and then you could run any number of groups on that.
+Also, you controlled audience and admission, so it was possible to create protected safe spaces - by design an impossibility on USENET.&lt;/p&gt;
+&lt;p&gt;In the end that made all but the most hardware tech audience move away from USENET rather quickly, and eventually USENET became irrelevant.&lt;/p&gt;
+&lt;h1 id=&#34;tldr&#34;&gt;
+    &lt;a href=&#34;#tldr&#34;&gt;
+	TL;DR
+    &lt;/a&gt;
+&lt;/h1&gt;
+&lt;p&gt;We can not only learn from the successes of USENET, but even more from its failures.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Wieso wir uns veröffentlichen</title>
+      <link>https://blog.koehntopp.info/2012/03/03/wieso-wir-uns-veroeffentlichen.html</link>
+      <pubDate>Sat, 03 Mar 2012 16:05:06 +0000</pubDate>
+      
+      <guid>https://blog.koehntopp.info/2012/03/03/wieso-wir-uns-veroeffentlichen.html</guid>
+      <description>&lt;p&gt;Der folgende Text entstand aus einigen Zeilen, die ich zwischen Tür und
+Angel in #spackeria abgeworfen habe, und die von Jürgen Geuter und Sven Türpe
+aufgearbeitet worden sind.  Er ist noch nicht ganz fertig, und an einigen
+Stellen sind Brüche drin, aber nachdem wir da in den letzten paar Tagen
+nicht haben weiter arbeiten können, hau ich den aktuellen Stand mit allen
+seinen Schwächen einfach mal hier ins Blog bevor uns der Text weg gammelt.&lt;/p&gt;
+&lt;p&gt;&amp;ldquo;Wieso wir uns veröffentlichen&amp;rdquo; oder warum Menschen &amp;ldquo;so dumm sind&amp;rdquo; und &amp;ldquo;ihre
+Daten&amp;rdquo; Facebook und Google geben, obwohl jeder(tm) weiß, dass &amp;ldquo;sie&amp;rdquo; nur
+Böses im Schilde führen:&lt;/p&gt;
+&lt;p&gt;Eine der am meisten Energie kostenden Tätigkeiten im Leben ist es, Menschen
+zu finden, die meine Überlegungen bestätigen, ausbauen, reflektieren,
+freundlich hinterfragen und korrigieren.  Menschen, die uns nahe genug sind,
+dass sie mit uns elementare Grundsätze teilen und dass sie unsere Probleme
+und Überlegungen verstehen können, die andererseits uns fremd genug sind,
+dass sie uns zum weiter denken inspirieren und uns mit neuen Ideen
+konfrontieren.&lt;/p&gt;
+&lt;p&gt;Soziale Netzwerke im Internet sind dabei ein verhältnismässig neues
+Instrument, aber keineswegs eine komplette Neuentwicklung.  Vor der
+Etablierung des Internets im Alltag spielten - neben der Familie - lokal
+ausgerichtete Gruppen wie Vereine, Interessensverbände oder sich lose über
+Kleinanzeigen oder bei Veranstaltungen bildende Gruppen die dominante Rolle
+bei der Erzeugung von Kommunikationsräumen.&lt;/p&gt;
+&lt;p&gt;Das Internet in seiner reinen Form kennt keine Regionen: Gefühlt ist die
+Verbindung in die USA oft kaum von einer nach Deutschland oder Indien
+unterscheidbar.  Soziale Netze im Internet erben diese Eigenschaft und so
+ist man bei der Findung von interessanten Kommunikationspartnern nicht mehr
+durch regionale Einschränkungen gegängelt: Die potentialen
+Kommunikationspartner sind die ganze (Zugang zum Netz habende) Menschheit.
+Das gruppierende Element ist nicht länger die Region oder das Land, es ist
+das Thema.&lt;/p&gt;
+&lt;p&gt;Eine solche Gruppe kann dabei thematisch eng gefaßt aufgestellt sein
+(&amp;ldquo;Benutzer des Binford 6000&amp;rdquo;), ein großes und komplexes Anliegen haben
+(&amp;ldquo;S21&amp;rdquo;) oder gar bis an eine Subkultur heranreichen (&amp;ldquo;Piratenpartei&amp;rdquo;).  Wie
+sich allerdings zeigt sind die Gruppen, die sich über soziale Netzwerke
+konstituieren nicht &amp;ldquo;fertig&amp;rdquo;, nicht &amp;ldquo;abgeschlossen&amp;rdquo;, sondern tendieren ganz
+klar dazu, größer werden zu wollen, mehr &amp;ldquo;Anhänger&amp;rdquo; zu finden und dadurch
+auch mehr themenbezogene Impulse für alle Gruppenangehörigen zu generieren.&lt;/p&gt;
+&lt;p&gt;Doch damit das gesamte System funktionieren kann, muß das einzelne
+Individuum dem Netz Informationen über sich bereitstellen.  Neben simplen
+Fakten wie &amp;ldquo;Ich bin Binford 6000 User&amp;rdquo;, ein &amp;ldquo;S21 Gegner/Unterstützer&amp;rdquo;, ein
+&amp;ldquo;Pirat&amp;rdquo;, die zusammengesetzt natürlich ein gewisses Bild einer Person
+vermitteln, erlauben es persönliche Meinungsäußerungen wie &amp;ldquo;Ich finde ja,
+dass $ÖffentlichePerson im Fall $Dingsi Mist gebaut hat&amp;rdquo; oder auch klar
+abgebildete Beziehungen zwischen Menschen eine deutlich bessere Einschätzung
+einer bisher fremden Person zu machen: Aus größeren Überschneidungen im
+Bekanntenkreis, kann beispielsweise sehr oft eine gewisse Kompatibilität
+abgeleitet werden (oder wenns genau die nervigen Bekannten sind auch ein
+Hinweis auf wahrscheinliche Inkompatibilität).&lt;/p&gt;
+&lt;p&gt;Diese Einschätzungen sind zentral für das Knüpfen neuer sozialer Bindungen
+und hier spielen internetbasierte soziale Netzwerke aufgrund ihrer
+expliziten Daten ihre Stärke in Form von Effizienz aus.  Füttere ich ein
+Soziales Netzwerk nur ein wenig an, wird es sehr schnell in der Lage sein,
+mir meist durchaus relevante Vorschläge für neue Kontakte und Themengruppen
+zu machen.  Kommunikation und Austausch zwischen den Mitgliedern tun dann
+ein übriges, und schnell hat man die Kontakte zum gewünschten Thema, die man
+gesucht hat.&lt;/p&gt;
+&lt;p&gt;Und genau deshalb &amp;ldquo;enthüllen&amp;rdquo; sich so viele Menschen auf Twitter, Facebook,
+Google+, Path oder sonstwo: Sie machen sich sichtbar, findbar.  Um im
+Rückschluss selber relevantes zu finden.&lt;/p&gt;
+&lt;p&gt;Das kostet Vertrauen.  Vertrauen in unsere Mitmenschen, in
+Plattformbetreiber und manchmal sogar in den Staat (auf den wir gut
+aufpassen, damit er&amp;rsquo;s nicht missbraucht).  Doch dieses Vertrauen ist nicht
+verschenkt, denn es hilft anderen, uns zu vertrauen.  Vertrauen vereinfacht
+die soziale Interaktion.  Dadurch, dass wir unsere Vorlieben, Ängste und
+Anliegen veröffentlichen, erlauben wir es anderen uns nahe zu kommen - und
+hoffen zugleich, dass die, die uns nahe kommen, Personen sind, an denen wir
+wachsen können, dass sie Leute sind, die unser Leben bereichern.  Das ist
+technisch gesehen eine Filterblase, aber vor allem ist es eine massive
+Kooperationserleichterung.&lt;/p&gt;
+&lt;p&gt;Die Filterblase erweist sich bei näherer Betrachtung als strukturiert,
+vielfältig und durchdringlich.  Jeder von uns steckt nicht in einer Blase,
+sondern in mehreren, und in jeder Blase finden wir Menschen mit eigenem
+Profil.  Feste Wände gibt es nicht, im Gegenteil.  Wir hören von und
+kommunizieren mit wildfremden Menschen - wenn es für ihr Thema einen Weg
+durch unser soziales Netz gibt.  Unsere Kontakte sind dabei keine Filter,
+sondern Verstärker.  Aus dem Rauschen der Welt extrahieren sie ein Signal.
+Wir wissen nicht, wie wir selbst nach diesem Signal suchen sollten, wir
+können es nicht beschreiben.  Aber wenn wir es sehen, wissen wir, dass es
+uns interessiert.&lt;/p&gt;
+&lt;p&gt;Die Erfahrung gibt der Mehrzahl von uns in den meisten Fällen Recht: Wir
+sparen durch die Veröffentlichung eine Menge Zeit und Energie, und wir
+bekommen mehr vom Netz zurück als wir dort hineinstecken: Mehr und
+vielfältigere Kontakte überall auf dem Globus, mehr Input und eine buntere
+und hoffentlich tolerantere Sicht auf die Welt.  Menschen sind also
+keineswegs &amp;ldquo;dumm&amp;rdquo;, wenn sie in soziale Netzwerke publizieren, sie bewerten
+den Nutzen dieser schlicht und ergreifend als höher als die potentiellen
+Gefahren.  Sie interessiert nicht, wer ihre Daten hat, sondern was damit
+geschieht.&lt;/p&gt;
+&lt;p&gt;Vielleicht verlieren wir Kontrolle über manches.  Wir gewinnen aber auch
+Unabhängigkeit.  Die Bestandsdaten unserer sozialen Beziehungen sind nicht
+in den CRM-Systemen unserer Ex-Arbeitgeber vergraben und vor unbefugtem,
+d.h.  unserem Zugriff geschützt, sondern sie sind in Plattformen
+repräsentiert, die wir uns ausgesucht haben.  Das nivelliert die
+Machtverhältnisse: wenn eine Plattform sytematisch Mist baut, ziehen wir um.&lt;/p&gt;
+&lt;p&gt;Wir geben auch nicht unsere Privatsphäre auf.  Soziale Netze sind
+(halb-)öffentliche Räume.  Wir bewegen uns dort, wie wir es vor einer
+Generation im Sportverein oder am Stammtisch getan hättten: wir verraten
+nicht alles über uns, aber wir verstecken uns auch nicht vor der Welt.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Facebook oder was?</title>
+      <link>https://blog.koehntopp.info/2011/05/23/facebook-oder-was.html</link>
+      <pubDate>Mon, 23 May 2011 18:42:55 +0000</pubDate>
+      
+      <guid>https://blog.koehntopp.info/2011/05/23/facebook-oder-was.html</guid>
+      <description>&lt;p&gt;Aus recht offensichtlichen Gründen halten sich eine ganze Menge sozialer
+Netzwerke mehr und mehr für Facebook. Das heißt, sie versuchen da so einen
+Strom von Statusupdates zu bauen und da dann irgendwelche &amp;ldquo;Mehrwerte&amp;rdquo; mit
+rein zu mischen.&lt;/p&gt;
+&lt;p&gt;Der Grund dafür ist aus der Sicht der Betreiber der Dienste recht
+offensichtlich: Die Währungen für Werbung sind Anzahl der Unique User pro
+Tag und die Anzahl der Minuten pro Tag pro User auf der Site. Facebook hat
+dort unglaublich astronomische Werte, weil die Site konsequent so angelegt
+ist, daß die User sich regelmäßig einloggen und dann auch dort bleiben.
+Haupt-Treiber sind Spiele und Chat: Die Spiele sorgen dafür, daß die
+Benutzer laufend wieder zurückkommen und
+&lt;a href=&#34;http://www.bogost.com/blog/cow_clicker_1.shtml&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;ihre Kuh klicken&lt;/a&gt;
+
+.
+Und der Chat sorgt dafür, daß die User laufend eine Facebook-Seite offen
+haben, auf der sie im Chat erreichbar sind.&lt;/p&gt;
+&lt;p&gt;Sites, deren Fokus auf Bewerbungen und Lebensläufen liegt, haben da keinen
+Stich: So oft wechseln die meisten Leute ihren Job halt nicht. Das macht
+sich dann in den Minutenstatistiken der Werbeverkäufer nicht so gut - aber
+man sollte sich trösten: Es ist es nicht so, daß ich oder sonst irgendjemand
+auf Facebook irgendwas machen würde, was wichtig ist oder Geld bedeutet. Das
+passiert anderswo. Klar bin ich bei weitem kein Standardnutzer (0 Facebooks
+Apps, tendenz sinkend), aber ich nutze die verschiedenen Netzwerke zu
+unterschiedlichen Zwecken und ich bin immer leicht genervt, wenn wieder
+irgendein Social Network CEO in Panik meint, er müsse seinen Laden in
+Facebook verwandeln.&lt;/p&gt;
+&lt;p&gt;Andererseits ist es so, daß diese anderen Social Networks wegen ihrer
+Facebook-Fixation den Wert ihrer Daten und den wahren Zweck ihres Daseins
+nicht erkennen können und daher verzweifelt auf ihren Daten sitzen, anstatt
+damit etwas Sinnvolles zu tun.&lt;/p&gt;
+&lt;p&gt;Da ist zum Beispiel Xing. Xing ist ein &amp;ldquo;Business Netzwerk&amp;rdquo;, also eine
+Sammlung von Kontaktadressen, verdateten Lebensläufen und
+Empfehlungsschreiben. Trotzdem hat es nicht nur ungefähr Jahrzehnte
+gedauert, bis man die Adressdaten seiner Kontakte mal herunterladen und in ein
+lokales Adressbuch importieren konnte, sondern die ursprüngliche Xing-App für
+Android kam zum Beispiel ohne Adressbuch-synchronisieren-Funktion heraus.
+Noch heute ist diese Funktion nicht etwa als Android-Sync-Conduit realisiert
+und über das normale Setup zu erreichen, sondern Bestandteil der Xing-App
+mit einem eigenen, inkompatiblen User-Interface.&lt;/p&gt;
+&lt;p&gt;Mit den Lebensläufen in Xing kann man genau gar nichts anfangen: Xing
+propagiert kein standardisiertes Austauschformat für Lebensläufe und es ist
+nicht so, daß man als Xing-User etwa eine digitale Bewerbung an die
+Personalabteilung einer Firma schießen könnte, die ein Xing-Profil hat. Die
+Funktion für Empfehlungsschreiben/Referenzen war als externe Anwendung
+realisiert, hatte die Daten des Lebenslaufes einmal aus Xing importiert und
+sie dann nie wieder aktualisiert - keine Ahnung, ob das inzwischen behoben
+ist, ich habe nach diesem Ultrafail das Interesse an der Funktion verloren.&lt;/p&gt;
+&lt;p&gt;Xing-Connect ist ein U-Boot Projekt und wird auch jetzt immer noch nicht von
+Xing richtig unterstützt (Und web.de versucht nicht mal, Login-Anbieter zu
+sein).&lt;/p&gt;
+&lt;p&gt;Daß die meisten Xing-Anwender mit der Freigabe von Kontaktdaten in Xing ein
+wenig sparsam sind, kann man dem Betreiber nicht wirklich anlasten.
+Deutschland leidet da unter dem Streetview-Effekt: Größter
+&lt;strike&gt;Spanner&lt;/strike&gt;Nutzer in Streetview sind die Deutschen, und die
+größten Schreihälse betreffend Verpixelung sind sie auch. In etwa das kann
+man auch bei der Freigabe von Kontaktdaten beobachten.&lt;/p&gt;
+&lt;p&gt;Xing anlasten kann man dagegen das Fehlen einer Massenänderungsfunktion oder
+das Fehlen einer Funktion zur Definition von Gruppen und Profilen: Wenn man
+sich nachträglich entscheidet, etwa allen Kontakten seine Skype-Adresse
+freigeben zu wollen, dann ist es sehr nervig, sich durch alle 624 Kontakte
+zu klicken und bei jedem die entsprechende Freigabe zu erteilen. Wie schön
+wäre es, hätte man eine Funktion zur Definition von Gruppen (&amp;ldquo;Arbeit&amp;rdquo;,
+&amp;ldquo;Familie&amp;rdquo;, &amp;ldquo;Idioten&amp;rdquo;) und könnte dann jeder Gruppe ein Datenprofil (&amp;ldquo;Skype
+ja, Business-Telefon ja, privat nicht&amp;rdquo;) zuweisen. Und über die Gruppe &amp;ldquo;Alle&amp;rdquo;
+global ändern, statt sich die Maus blutig zu klicken.&lt;/p&gt;
+&lt;p&gt;Plaxo leistet sehr ähnliches wie Xing hinsichtlich seiner Eigenschaft als
+Adressbuch - für Android-User im Gegensatz zu iPhone und Blackberry aber nur
+für Plaxo Premium-User, weil diese Funktion bei Android das Google Contacts
+Sync benötigt, und das wiederum nur im Plaxo Premium Paket enthalten ist.
+Schade, Plaxo, wär schön gewesen, wenn Du nützlich gewesen wärest.&lt;/p&gt;
+&lt;p&gt;LinkedIn - tja, den Sinn dieser Site habe ich noch nicht ganz verstanden.
+Wie Xing auch versendet LinkedIn keine elektronischen Bewerbungen und
+Lebensläufe. Die meisten Leute haben da auch keine sinnvollen Adressdaten
+drin, die ich zweckmäßigerweise auf das Telefon synchronisieren könnte. Und
+auch LinkedIn hält sich inzwischen wie Xing für Facebook und kackt mir mit
+einer Timeline den Bildschirm zu, wenn ich stattdessen doch nur arbeiten
+möchte.&lt;/p&gt;
+&lt;p&gt;Das kaputteste Konzept hat
+&lt;a href=&#34;http://www.empireavenue.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Empire Avenue&lt;/a&gt;
+
+, denn hier kann man
+&lt;a href=&#34;http://netzwertig.com/2011/05/09/empire-avenue-marktplatz-der-eitelkeit/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;sinnlos Zeit damit versenken&lt;/a&gt;
+
+,
+wertlose Anteile an anderen Personen zu kaufen und sein &amp;ldquo;Portfolio&amp;rdquo; zu
+managen, um dann virtuelle Vergleiche imaginärer Schwänze durchzuführen.&lt;/p&gt;
+&lt;p&gt;Vielleicht sollten einige der Betreiber dieser Netzwerkdinger einmal
+anhalten, sich überlegen, was der von ihnen angestrebte Mehrwert ist und
+dann ihren Mist dahin gehend optimieren, daß sie diesen Mehrwert auch
+wirklich abliefern - und auf der Site klar ansagen, was sie sein wollen und
+was nicht.&lt;/p&gt;
+&lt;p&gt;Noch ein Facebook brauch ich jedenfalls nicht.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>&#34;Freunde&#34; und soziale Netzwerke</title>
+      <link>https://blog.koehntopp.info/2010/11/24/freunde-und-soziale-netzwerke.html</link>
+      <pubDate>Wed, 24 Nov 2010 14:43:59 +0000</pubDate>
+      
+      <guid>https://blog.koehntopp.info/2010/11/24/freunde-und-soziale-netzwerke.html</guid>
+      <description>&lt;p&gt;Ich habe ja lange Zeit gehofft, daß die Medien als Gruppe irgendwann einmal
+die Kurve kriegen und es schaffen, sich vom Begriff des &amp;ldquo;friendens&amp;rdquo; und
+&amp;ldquo;likens&amp;rdquo; in den diversen sozialen Netzen zu lösen und auf die Funktionalität
+zu schauen, die sich hinter diesem Begriff versteckt. Aber auch hier scheint
+es sich um einen Fall zu handeln, bei dem ein alter Begriff in einem neuen
+Kontext verwendet wird, und bei dem die alten Bedeutungen und Konnotationen
+so sehr überschatten, daß das Neue keine Chance hat.&lt;/p&gt;
+&lt;p&gt;Aktuell scheitert
+&lt;a href=&#34;http://www.miriammeckel.de/2010/11/18/wahre-freundschaft/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Miriam Meckel&lt;/a&gt;
+
+
+an Facebook, und versteigt sich bei den Freunden von Jeff Jarvis über Dunbar
+und Montaigne zu Aristoteles. Die falsche Richtung. Guck nach vorne Miriam:
+Was macht ein &amp;lsquo;+1&amp;rsquo; oder ein Like-Button genau?&lt;/p&gt;
+&lt;p&gt;Genau, er abonniert ein Statusabonnement - ich bekomme einen Kanal mehr, den
+Facebook auf meinem Wall aggregiert und unter die Meldungen meiner anderen
+Abos mischt. Er macht also genau das, was ein RSS &amp;lsquo;subscribe&amp;rsquo; macht, und
+könnte genauso gut auch &amp;lsquo;subscribe&amp;rsquo; heißen. Anders als ein RSS Abo ist
+Facebook aber symmetrisch: Ich abonniere Deine Statusupdates und Du bekommst
+dafür meine.&lt;/p&gt;
+&lt;p&gt;Dabei ist Facebook unglaublich schlecht und trennt zum Beispiel nicht
+automatisch nach Sprachen, nutzt den Social Graph nicht zur automatischen
+Gruppierung und bietet auch sonst nur sehr rudimentäre Filterfunktionen an.
+Zudem wäre es in vielen Fällen sinnvoll, tatsächlich wie bei RSS oder
+Twitter ein unidirektionales &amp;lsquo;Subscribe&amp;rsquo; alias &amp;lsquo;Follow&amp;rsquo; zu haben, denn oft
+will ich den Statusmeldungen einer Person folgen, ohne daß die meine
+irrelevanten Posts lesen müssen (Facebook hat dafür andere Seitentypen, und
+im Grunde ist das einer der Unterschiede zwischen &amp;lsquo;+1&amp;rsquo; und &amp;lsquo;Like&amp;rsquo;).&lt;/p&gt;
+&lt;p&gt;Aber das zu verstehen und auseinander zu dividieren ist von einem
+Qualitätsjournalisten vielleicht ein wenig viel verlangt.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
+
